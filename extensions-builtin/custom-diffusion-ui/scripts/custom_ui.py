@@ -1,14 +1,17 @@
 """
-Custom Diffusion UI - プリセット管理機能付きカスタムインターフェース
+Custom Diffusion UI - プリセット管理機能・キューイング機能付きカスタムインターフェース
 """
 
 import os
 import json
 import base64
 import datetime
+import threading
+import time
 from io import BytesIO
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
+from collections import deque
 
 import gradio as gr
 from PIL import Image
@@ -26,6 +29,83 @@ THUMBNAIL_DIR = PRESET_DIR / "thumbnails"
 # ディレクトリを作成
 PRESET_DIR.mkdir(exist_ok=True)
 THUMBNAIL_DIR.mkdir(exist_ok=True)
+
+
+class GenerationQueue:
+    """生成キュー管理クラス"""
+
+    def __init__(self):
+        self.queue: deque = deque()
+        self.results: List[Dict[str, Any]] = []
+        self.is_processing = False
+        self.current_task_id = 0
+        self.lock = threading.Lock()
+
+    def add_task(self, task: Dict[str, Any]) -> int:
+        """タスクをキューに追加"""
+        with self.lock:
+            self.current_task_id += 1
+            task['id'] = self.current_task_id
+            task['status'] = 'waiting'
+            task['added_at'] = datetime.datetime.now().isoformat()
+            self.queue.append(task)
+            return self.current_task_id
+
+    def get_next_task(self) -> Dict[str, Any]:
+        """次のタスクを取得"""
+        with self.lock:
+            if self.queue:
+                return self.queue.popleft()
+            return None
+
+    def clear_queue(self):
+        """キューをクリア"""
+        with self.lock:
+            self.queue.clear()
+
+    def get_queue_status(self) -> str:
+        """キューの状態を取得"""
+        with self.lock:
+            if not self.queue:
+                status = "キューは空です"
+            else:
+                status = f"待機中: {len(self.queue)}件\n\n"
+                for i, task in enumerate(self.queue, 1):
+                    prompt_preview = task['prompt'][:50] + "..." if len(task['prompt']) > 50 else task['prompt']
+                    status += f"{i}. [{task['id']}] {prompt_preview}\n"
+
+            if self.is_processing:
+                status = "🔄 処理中...\n\n" + status
+
+            return status
+
+    def get_queue_count(self) -> int:
+        """キュー内のタスク数を取得"""
+        with self.lock:
+            return len(self.queue)
+
+    def add_result(self, task_id: int, images: List, info: str):
+        """結果を追加"""
+        with self.lock:
+            self.results.append({
+                'task_id': task_id,
+                'images': images,
+                'info': info,
+                'completed_at': datetime.datetime.now().isoformat()
+            })
+
+    def get_all_result_images(self) -> List:
+        """全結果画像を取得"""
+        with self.lock:
+            all_images = []
+            for result in self.results:
+                all_images.extend(result['images'])
+            return all_images
+
+    def clear_results(self):
+        """結果をクリア"""
+        with self.lock:
+            self.results.clear()
 
 
 class PresetManager:
@@ -98,8 +178,9 @@ class PresetManager:
         return gallery_data
 
 
-# グローバルプリセットマネージャー
+# グローバルインスタンス
 preset_manager = PresetManager()
+generation_queue = GenerationQueue()
 
 
 def get_available_samplers() -> List[str]:
@@ -136,6 +217,51 @@ def get_available_upscalers() -> List[str]:
     return upscalers
 
 
+def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str, str]:
+    """単一タスクの画像を生成"""
+
+    # 固定モデル設定の確認（オーバーライド）
+    override_settings = {}
+
+    # 画像生成パラメータを設定
+    p = StableDiffusionProcessingTxt2Img(
+        sd_model=shared.sd_model,
+        outpath_samples=shared.opts.outdir_samples or shared.opts.outdir_txt2img_samples,
+        outpath_grids=shared.opts.outdir_grids or shared.opts.outdir_txt2img_grids,
+        prompt=task['prompt'],
+        negative_prompt=task['negative_prompt'],
+        seed=task['seed'],
+        sampler_name=task['sampler_name'],
+        scheduler=task['scheduler'],
+        batch_size=task['batch_size'],
+        n_iter=task['batch_count'],
+        steps=task['steps'],
+        cfg_scale=task['cfg_scale'],
+        width=task['width'],
+        height=task['height'],
+        enable_hr=task['enable_hr'],
+        hr_scale=task['hr_scale'],
+        hr_upscaler=task['hr_upscaler'],
+        hr_second_pass_steps=task['hr_steps'],
+        denoising_strength=task['denoising_strength'],
+        override_settings=override_settings,
+    )
+
+    # フェイスリストア設定
+    if task['enable_face_restore']:
+        p.restore_faces = True
+        p.extra_generation_params["ADetailer Conf 1st"] = task['adetailer_conf_1']
+        p.extra_generation_params["ADetailer Conf 2nd"] = task['adetailer_conf_2']
+        p.extra_generation_params["ADetailer Conf 3rd"] = task['adetailer_conf_3']
+        p.extra_generation_params["ADetailer Conf 4th"] = task['adetailer_conf_4']
+        p.extra_generation_params["Face Restore Strength"] = task['face_restore_strength']
+
+    # 画像生成実行
+    processed: Processed = process_images(p)
+
+    return processed.images, processed.info, processed.comments_html
+
+
 def generate_image(
     prompt: str,
     negative_prompt: str,
@@ -153,7 +279,6 @@ def generate_image(
     hr_upscaler: str,
     hr_steps: int,
     denoising_strength: float,
-    # ADetailer風の設定
     enable_face_restore: bool,
     face_restore_strength: float,
     adetailer_conf_1: float,
@@ -161,54 +286,141 @@ def generate_image(
     adetailer_conf_3: float,
     adetailer_conf_4: float,
 ) -> Tuple[List[Image.Image], str, str]:
-    """画像を生成"""
+    """即時画像生成"""
 
-    # 固定モデル設定の確認（オーバーライド）
-    override_settings = {}
+    task = {
+        'prompt': prompt,
+        'negative_prompt': negative_prompt,
+        'sampler_name': sampler_name,
+        'scheduler': scheduler,
+        'steps': steps,
+        'cfg_scale': cfg_scale,
+        'width': width,
+        'height': height,
+        'seed': seed,
+        'batch_count': batch_count,
+        'batch_size': batch_size,
+        'enable_hr': enable_hr,
+        'hr_scale': hr_scale,
+        'hr_upscaler': hr_upscaler,
+        'hr_steps': hr_steps,
+        'denoising_strength': denoising_strength,
+        'enable_face_restore': enable_face_restore,
+        'face_restore_strength': face_restore_strength,
+        'adetailer_conf_1': adetailer_conf_1,
+        'adetailer_conf_2': adetailer_conf_2,
+        'adetailer_conf_3': adetailer_conf_3,
+        'adetailer_conf_4': adetailer_conf_4,
+    }
 
-    # 画像生成パラメータを設定
-    p = StableDiffusionProcessingTxt2Img(
-        sd_model=shared.sd_model,
-        outpath_samples=shared.opts.outdir_samples or shared.opts.outdir_txt2img_samples,
-        outpath_grids=shared.opts.outdir_grids or shared.opts.outdir_txt2img_grids,
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        seed=seed,
-        sampler_name=sampler_name,
-        scheduler=scheduler,
-        batch_size=batch_size,
-        n_iter=batch_count,
-        steps=steps,
-        cfg_scale=cfg_scale,
-        width=width,
-        height=height,
-        enable_hr=enable_hr,
-        hr_scale=hr_scale,
-        hr_upscaler=hr_upscaler,
-        hr_second_pass_steps=hr_steps,
-        denoising_strength=denoising_strength,
-        override_settings=override_settings,
-    )
+    return generate_single_image(task)
 
-    # フェイスリストア設定
-    if enable_face_restore:
-        p.restore_faces = True
-        # ADetailer風の設定をメタデータに追加
-        p.extra_generation_params["ADetailer Conf 1st"] = adetailer_conf_1
-        p.extra_generation_params["ADetailer Conf 2nd"] = adetailer_conf_2
-        p.extra_generation_params["ADetailer Conf 3rd"] = adetailer_conf_3
-        p.extra_generation_params["ADetailer Conf 4th"] = adetailer_conf_4
-        p.extra_generation_params["Face Restore Strength"] = face_restore_strength
 
-    # 画像生成実行
-    processed: Processed = process_images(p)
+def add_to_queue(
+    prompt: str,
+    negative_prompt: str,
+    sampler_name: str,
+    scheduler: str,
+    steps: int,
+    cfg_scale: float,
+    width: int,
+    height: int,
+    seed: int,
+    batch_count: int,
+    batch_size: int,
+    enable_hr: bool,
+    hr_scale: float,
+    hr_upscaler: str,
+    hr_steps: int,
+    denoising_strength: float,
+    enable_face_restore: bool,
+    face_restore_strength: float,
+    adetailer_conf_1: float,
+    adetailer_conf_2: float,
+    adetailer_conf_3: float,
+    adetailer_conf_4: float,
+) -> Tuple[str, str]:
+    """タスクをキューに追加"""
 
-    # 結果を返す
-    images = processed.images
-    info = processed.info
-    html_info = processed.comments_html
+    if not prompt:
+        return "エラー: プロンプトを入力してください", generation_queue.get_queue_status()
 
-    return images, info, html_info
+    task = {
+        'prompt': prompt,
+        'negative_prompt': negative_prompt,
+        'sampler_name': sampler_name,
+        'scheduler': scheduler,
+        'steps': steps,
+        'cfg_scale': cfg_scale,
+        'width': width,
+        'height': height,
+        'seed': seed,
+        'batch_count': batch_count,
+        'batch_size': batch_size,
+        'enable_hr': enable_hr,
+        'hr_scale': hr_scale,
+        'hr_upscaler': hr_upscaler,
+        'hr_steps': hr_steps,
+        'denoising_strength': denoising_strength,
+        'enable_face_restore': enable_face_restore,
+        'face_restore_strength': face_restore_strength,
+        'adetailer_conf_1': adetailer_conf_1,
+        'adetailer_conf_2': adetailer_conf_2,
+        'adetailer_conf_3': adetailer_conf_3,
+        'adetailer_conf_4': adetailer_conf_4,
+    }
+
+    task_id = generation_queue.add_task(task)
+    return f"タスク #{task_id} をキューに追加しました！", generation_queue.get_queue_status()
+
+
+def process_queue() -> Tuple[List, str, str, str]:
+    """キューを処理"""
+
+    if generation_queue.is_processing:
+        return [], "エラー: 既に処理中です", "", generation_queue.get_queue_status()
+
+    if generation_queue.get_queue_count() == 0:
+        return [], "キューは空です", "", generation_queue.get_queue_status()
+
+    generation_queue.is_processing = True
+    generation_queue.clear_results()
+
+    all_images = []
+    all_info = []
+
+    try:
+        while True:
+            task = generation_queue.get_next_task()
+            if task is None:
+                break
+
+            try:
+                images, info, html = generate_single_image(task)
+                generation_queue.add_result(task['id'], images, info)
+                all_images.extend(images)
+                all_info.append(f"[タスク #{task['id']}]\n{info}")
+            except Exception as e:
+                all_info.append(f"[タスク #{task['id']}] エラー: {str(e)}")
+
+    finally:
+        generation_queue.is_processing = False
+
+    combined_info = "\n\n---\n\n".join(all_info)
+    message = f"✅ キュー処理完了！{len(all_images)}枚の画像を生成しました"
+
+    return all_images, combined_info, message, generation_queue.get_queue_status()
+
+
+def clear_queue() -> Tuple[str, str]:
+    """キューをクリア"""
+    generation_queue.clear_queue()
+    return "キューをクリアしました", generation_queue.get_queue_status()
+
+
+def get_queue_status() -> str:
+    """キュー状態を取得"""
+    return generation_queue.get_queue_status()
 
 
 def save_preset(
@@ -248,10 +460,8 @@ def save_preset(
     # 最初の画像を取得
     first_image = gallery_images[0]
     if isinstance(first_image, str):
-        # ファイルパスの場合
         first_image = Image.open(first_image)
     elif isinstance(first_image, tuple):
-        # (image, caption)のタプルの場合
         if isinstance(first_image[0], str):
             first_image = Image.open(first_image[0])
         else:
@@ -283,10 +493,7 @@ def save_preset(
         "adetailer_conf_4": adetailer_conf_4,
     }
 
-    # プリセットを保存
     message = preset_manager.add_preset(preset_name, settings, first_image)
-
-    # 更新されたギャラリーデータを返す
     return message, preset_manager.get_gallery_data()
 
 
@@ -295,12 +502,11 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
 
     index = evt.index
     if index >= len(preset_manager.presets):
-        return tuple([None] * 24)  # 全ての入力フィールドの数
+        return tuple([None] * 24)
 
     preset = preset_manager.presets[index]
     settings = preset["settings"]
 
-    # 設定値を返す（UIコンポーネントの順序に合わせる）
     return (
         settings.get("prompt", ""),
         settings.get("negative_prompt", ""),
@@ -325,7 +531,7 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
         settings.get("adetailer_conf_3", 0.3),
         settings.get("adetailer_conf_4", 0.3),
         f"プリセット '{preset['name']}' を読み込みました！",
-        [],  # プリセット名フィールドをクリア
+        "",
     )
 
 
@@ -342,7 +548,7 @@ def create_custom_diffusion_ui():
         gr.Markdown("""
         # 🎨 Custom Diffusion UI
 
-        プリセット管理機能付きの使いやすいカスタムインターフェース
+        プリセット管理・キューイング機能付きの使いやすいカスタムインターフェース
 
         **固定モデル**: prefectIllustriousXL_v3.safetensors + sdxl_vae.safetensors
         """)
@@ -532,11 +738,18 @@ def create_custom_diffusion_ui():
                             )
 
                 # 生成ボタン
-                generate_btn = gr.Button(
-                    "🎨 画像を生成",
-                    variant="primary",
-                    size="lg",
-                )
+                gr.Markdown("### 🚀 生成")
+
+                with gr.Row():
+                    generate_btn = gr.Button(
+                        "🎨 即時生成",
+                        variant="primary",
+                    )
+
+                    add_queue_btn = gr.Button(
+                        "📥 キューに追加",
+                        variant="secondary",
+                    )
 
             # 右側：結果パネル
             with gr.Column(scale=1):
@@ -558,6 +771,37 @@ def create_custom_diffusion_ui():
                 )
 
                 html_info = gr.HTML()
+
+                # キュー管理セクション
+                gr.Markdown("### 📋 キュー管理")
+
+                with gr.Row():
+                    process_queue_btn = gr.Button(
+                        "▶️ キュー実行",
+                        variant="primary",
+                    )
+
+                    clear_queue_btn = gr.Button(
+                        "🗑️ キュークリア",
+                        variant="stop",
+                    )
+
+                    refresh_queue_btn = gr.Button(
+                        "🔄 更新",
+                    )
+
+                queue_message = gr.Textbox(
+                    label="メッセージ",
+                    interactive=False,
+                    show_label=False,
+                )
+
+                queue_status = gr.Textbox(
+                    label="キュー状態",
+                    lines=8,
+                    interactive=False,
+                    value=generation_queue.get_queue_status(),
+                )
 
                 gr.Markdown("### 💾 プリセット管理")
 
@@ -595,67 +839,76 @@ def create_custom_diffusion_ui():
                     value=preset_manager.get_gallery_data(),
                 )
 
+        # 入力コンポーネントのリスト
+        generation_inputs = [
+            prompt,
+            negative_prompt,
+            sampler_name,
+            scheduler,
+            steps,
+            cfg_scale,
+            width,
+            height,
+            seed,
+            batch_count,
+            batch_size,
+            enable_hr,
+            hr_scale,
+            hr_upscaler,
+            hr_steps,
+            denoising_strength,
+            enable_face_restore,
+            face_restore_strength,
+            adetailer_conf_1,
+            adetailer_conf_2,
+            adetailer_conf_3,
+            adetailer_conf_4,
+        ]
+
         # イベントハンドラを設定
 
-        # 生成ボタンのクリックイベント
+        # 即時生成ボタン
         generate_btn.click(
             fn=generate_image,
-            inputs=[
-                prompt,
-                negative_prompt,
-                sampler_name,
-                scheduler,
-                steps,
-                cfg_scale,
-                width,
-                height,
-                seed,
-                batch_count,
-                batch_size,
-                enable_hr,
-                hr_scale,
-                hr_upscaler,
-                hr_steps,
-                denoising_strength,
-                enable_face_restore,
-                face_restore_strength,
-                adetailer_conf_1,
-                adetailer_conf_2,
-                adetailer_conf_3,
-                adetailer_conf_4,
-            ],
+            inputs=generation_inputs,
             outputs=[output_gallery, generation_info, html_info],
         )
 
-        # プリセット保存ボタンのクリックイベント
+        # キューに追加ボタン
+        add_queue_btn.click(
+            fn=add_to_queue,
+            inputs=generation_inputs,
+            outputs=[queue_message, queue_status],
+        )
+
+        # キュー実行ボタン
+        process_queue_btn.click(
+            fn=process_queue,
+            inputs=[],
+            outputs=[output_gallery, generation_info, queue_message, queue_status],
+        )
+
+        # キュークリアボタン
+        clear_queue_btn.click(
+            fn=clear_queue,
+            inputs=[],
+            outputs=[queue_message, queue_status],
+        )
+
+        # キュー更新ボタン
+        refresh_queue_btn.click(
+            fn=get_queue_status,
+            inputs=[],
+            outputs=[queue_status],
+        )
+
+        # プリセット保存ボタン
         save_preset_btn.click(
             fn=save_preset,
             inputs=[
                 preset_name,
                 output_gallery,
-                prompt,
-                negative_prompt,
-                sampler_name,
-                scheduler,
-                steps,
-                cfg_scale,
-                width,
-                height,
-                seed,
-                batch_count,
-                batch_size,
-                enable_hr,
-                hr_scale,
-                hr_upscaler,
-                hr_steps,
-                denoising_strength,
-                enable_face_restore,
-                face_restore_strength,
-                adetailer_conf_1,
-                adetailer_conf_2,
-                adetailer_conf_3,
-                adetailer_conf_4,
-            ],
+            ] + generation_inputs,
             outputs=[preset_message, history_gallery],
         )
 
@@ -691,7 +944,7 @@ def create_custom_diffusion_ui():
             ],
         )
 
-        # 更新ボタンのクリックイベント
+        # プリセット更新ボタン
         refresh_btn.click(
             fn=refresh_history_gallery,
             inputs=[],

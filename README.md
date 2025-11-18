@@ -1,53 +1,53 @@
 # Stable Diffusion WebUI Forge/reForge
 
-Stable Diffusion WebUI Forge/reForge is a platform on top of [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) (based on [Gradio](https://www.gradio.app/)) to make development easier, optimize resource management, speed up inference, and study experimental features.
+Stable Diffusion WebUI Forge/reForgeは、[Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)（[Gradio](https://www.gradio.app/)ベース）上に構築されたプラットフォームで、開発を容易にし、リソース管理を最適化し、推論を高速化し、実験的な機能を研究するために作られました。
 
-The name "Forge" is inspired from "Minecraft Forge". This project is aimed at becoming SD WebUI's Forge.
+「Forge」という名前は「Minecraft Forge」から着想を得ています。このプロジェクトはSD WebUIのForgeになることを目指しています。
 
 # Forge2/reForge2
 
-You can read more on https://github.com/Panchovix/stable-diffusion-webui-reForge/discussions/377#discussioncomment-14010687. You can tell me here if you want to keep these branches here or do something like "reForge2".
+詳細は https://github.com/Panchovix/stable-diffusion-webui-reForge/discussions/377#discussioncomment-14010687 をご覧ください。これらのブランチをここに残すか、「reForge2」のようにするかご意見をお聞かせください。
 
-* newmain_newforge: Based on latest forge2 (gradio4, flux, etc) with some small changes that I plan to add very slowly. For now it has python 3.12 support, sage/flash attention support, all the samplers and schedulers from reForge (1), and recently, support for CFG++ samplers.
-* newforge_dendev: Based on latest ersatzForge fork which is based on forge2 (gradio4, flux, chroma, cosmos, longclip, and a ton more) from @DenOfEquity (https://github.com/DenOfEquity/ersatzForge). Many thanks Den for letting me to work on base on your fork on reForge. I will try to add new features from old reforge as well, like all the samplers.
+* newmain_newforge: 最新のforge2（gradio4、flux等）をベースに、ゆっくりと追加する予定の小さな変更を含みます。現在はPython 3.12サポート、sage/flashアテンションサポート、reForge(1)からの全サンプラーとスケジューラ、そして最近ではCFG++サンプラーのサポートがあります。
+* newforge_dendev: @DenOfEquity (https://github.com/DenOfEquity/ersatzForge) による最新のersatzForgeフォーク（forge2ベース、gradio4、flux、chroma、cosmos、longclip、その他多数）をベースにしています。Denさん、reForgeであなたのフォークをベースに作業させていただきありがとうございます。古いreforgeからの新機能（全サンプラーなど）も追加していく予定です。
 
-# Suggestion: For stability based on old forge, use forge classic
+# 提案: 旧forgeベースの安定性を求めるなら、forge classicを使用してください
 
-reForge(1) is not really stable for all tasks sadly.
+reForge(1)は残念ながら全てのタスクで安定しているわけではありません。
 
-So if you want to keep using old forge backend as it is, for sd1.x,2.x and SDXL, I suggest to use forge classic by @Haoming02 instead https://github.com/Haoming02/sd-webui-forge-classic, as at the moment that is the real succesor to old forge.
+そのため、sd1.x、2.x、SDXLで旧forgeバックエンドをそのまま使い続けたい場合は、@Haoming02によるforge classicを使用することをお勧めします：https://github.com/Haoming02/sd-webui-forge-classic。現時点では、これが旧forgeの真の後継者です。
 
-Other branches:
-* main: Main branch with multiple changes and updates. But not stable as main-old branch.
-* dev: Similar to main but with more unstable changes. I.e. using comfy/ldm_patched backend for sd1.x and sdxl instead of A1111.
-* dev2: More unstable than dev, for now same as dev.
-* experimental: same as dev2 but with gradio 4.
-* main-old: Branch with old forge backend. Possibly the most stable and older one (2025-03)
+その他のブランチ:
+* main: 複数の変更と更新を含むメインブランチ。ただしmain-oldブランチほど安定していません。
+* dev: mainと似ていますが、より不安定な変更を含みます。例：A1111の代わりにcomfy/ldm_patchedバックエンドをsd1.xとsdxlに使用。
+* dev2: devより不安定。現在はdevと同じ。
+* experimental: dev2と同じですがgradio 4を使用。
+* main-old: 旧forgeバックエンドを持つブランチ。おそらく最も安定した古いもの（2025-03）
 
-# Installing Forge/reForge
+# Forge/reForgeのインストール
 
-### (Suggested) Clean install.
+### （推奨）クリーンインストール
 
-For this, you will need Python (Python 3.7 up to 3.12 works fine, 3.13 still has some issues)
-If you know what you are doing, you can install Forge/reForge using same method as SD-WebUI. (Install Git, Python, Git Clone the reForge repo `https://github.com/Panchovix/stable-diffusion-webui-reForge.git` and then run webui-user.bat):
+Python（Python 3.7から3.12まで動作します。3.13はまだいくつかの問題があります）が必要です。
+何をしているか分かっている場合は、SD-WebUIと同じ方法でForge/reForgeをインストールできます。（Git、Pythonをインストールし、reForgeリポジトリ `https://github.com/Panchovix/stable-diffusion-webui-reForge.git` をGit Cloneして、webui-user.batを実行）:
 
 ```bash
 git clone https://github.com/Panchovix/stable-diffusion-webui-reForge.git
 cd stable-diffusion-webui-reForge
 git checkout main
 ```
-Then run webui-user.bat (Windows) or webui-user.sh (Linux, for this one make sure to uncomment the lines according of your folder, paths and setting you need).
+その後、webui-user.bat（Windows）またはwebui-user.sh（Linux。フォルダ、パス、必要な設定に応じて行のコメントを外してください）を実行します。
 
-When you want to update:
+更新したい場合:
 ```bash
 cd stable-diffusion-webui-reForge
 git pull
 ```
 
-### If using Windows 7 and/or CUDA 11.x
+### Windows 7やCUDA 11.xを使用している場合
 
-For this, way to install is a bit different, since it uses another req file. We will rename the original req file to a backup, and then copy the legacy one renmaed as the original, to keep updates working.
-For Windows CMD, it would be:
+別のrequirementsファイルを使用するため、インストール方法が少し異なります。元のreqファイルをバックアップにリネームし、レガシーのものを元の名前でコピーして、更新が動作するようにします。
+Windows CMDの場合:
 
 ```bash
 git clone https://github.com/Panchovix/stable-diffusion-webui-reForge.git
@@ -57,7 +57,7 @@ ren requirements_versions.txt requirements_versions_backup.txt
 copy requirements_versions_legacy.txt requirements_versions.txt
 ```
 
-Windows PS1
+Windows PS1の場合
 
 ```bash
 git clone https://github.com/Panchovix/stable-diffusion-webui-reForge.git
@@ -67,11 +67,11 @@ Rename-Item requirements_versions.txt requirements_versions_backup.txt
 Copy-Item requirements_versions_legacy.txt requirements_versions.txt
 ```
 
-Then run webui-user.bat (Windows).
+その後、webui-user.bat（Windows）を実行します。
 
-### You have A1111 and you know Git
-Tutorial from: https://github.com/continue-revolution/sd-webui-animatediff/blob/forge/master/docs/how-to-use.md#you-have-a1111-and-you-know-git
-If you have already had OG A1111 and you are familiar with git, An option is go to `/path/to/stable-diffusion-webui` and
+### A1111を持っていてGitを知っている場合
+チュートリアル元: https://github.com/continue-revolution/sd-webui-animatediff/blob/forge/master/docs/how-to-use.md#you-have-a1111-and-you-know-git
+すでにオリジナルのA1111を持っていてgitに精通している場合、`/path/to/stable-diffusion-webui` に移動して以下を実行するオプションがあります:
 ```bash
 git remote add reForge https://github.com/Panchovix/stable-diffusion-webui-reForge
 git branch Panchovix/main
@@ -81,69 +81,69 @@ git branch -u reForge/main
 git stash
 git pull
 ```
-To go back to OG A1111, just do `git checkout master` or `git checkout main`.
+オリジナルのA1111に戻るには、`git checkout master` または `git checkout main` を実行するだけです。
 
-If you got stuck in a merge to resolve conflicts, you can go back with `git merge --abort`
+マージで競合を解決する必要がある状態で止まった場合は、`git merge --abort` で戻れます。
 
 -------
 
-Pre-done package is planned, but I'm not sure how to do it. Any PR or help with this is appreciated.
+事前パッケージは計画されていますが、方法が分かりません。PRやヘルプを歓迎します。
 
-# Forge/reForge Backend
+# Forge/reForgeバックエンド
 
-Forge/reForge backend removes all WebUI's codes related to resource management and reworked everything. All previous CMD flags like `medvram, lowvram, medvram-sdxl, precision full, no half, no half vae, attention_xxx, upcast unet`, ... are all **REMOVED**. Adding these flags will not cause error but they will not do anything now.
+Forge/reForgeバックエンドは、リソース管理に関連するWebUIのすべてのコードを削除し、すべてを作り直しました。以前のCMDフラグ（`medvram, lowvram, medvram-sdxl, precision full, no half, no half vae, attention_xxx, upcast unet`など）はすべて**削除**されました。これらのフラグを追加してもエラーにはなりませんが、何も行いません。
 
-Without any cmd flag, Forge/reForge can run SDXL with 4GB vram and SD1.5 with 2GB vram.
+CMDフラグなしで、Forge/reForgeはSDXLを4GB VRAMで、SD1.5を2GB VRAMで実行できます。
 
-**Some flags that you may still pay attention to:** 
+**注意すべきフラグ:**
 
-1. `--always-offload-from-vram` (This flag will make things **slower** but less risky). This option will let Forge/reForge always unload models from VRAM. This can be useful if you use multiple software together and want Forge/reForge to use less VRAM and give some VRAM to other software, or when you are using some old extensions that will compete vram with Forge/reForge, or (very rarely) when you get OOM.
+1. `--always-offload-from-vram`（このフラグは**遅く**なりますがリスクが低くなります）。このオプションはForge/reForgeに常にVRAMからモデルをアンロードさせます。複数のソフトウェアを一緒に使用してForge/reForgeのVRAM使用量を減らし他のソフトウェアにVRAMを与えたい場合、Forge/reForgeとVRAMを競合する古い拡張機能を使用している場合、または（非常にまれに）OOMが発生した場合に便利です。
 
-2. `--cuda-malloc` (This flag will make things **faster** but more risky). This will ask pytorch to use *cudaMallocAsync* for tensor malloc. On some profilers I can observe performance gain at millisecond level, but the real speed up on most my devices are often unnoticed (about or less than 0.1 second per image). This cannot be set as default because many users reported issues that the async malloc will crash the program. Users need to enable this cmd flag at their own risk.
+2. `--cuda-malloc`（このフラグは**速く**なりますがリスクが高くなります）。これはpytorchにテンソルmallocに*cudaMallocAsync*を使用するよう要求します。一部のプロファイラーでミリ秒レベルのパフォーマンス向上を観察できますが、ほとんどのデバイスでの実際の速度向上は気づかないことが多いです（画像あたり約0.1秒以下）。多くのユーザーが非同期mallocがプログラムをクラッシュさせると報告しているため、デフォルトに設定できません。ユーザーは自己責任でこのcmdフラグを有効にする必要があります。
 
-3. `--cuda-stream` (This flag will make things **faster** but more risky). This will use pytorch CUDA streams (a special type of thread on GPU) to move models and compute tensors simultaneously. This can almost eliminate all model moving time, and speed up SDXL on 30XX/40XX devices with small VRAM (eg, RTX 4050 6GB, RTX 3060 Laptop 6GB, etc) by about 15\% to 25\%. However, this unfortunately cannot be set as default because I observe higher possibility of pure black images (Nan outputs) on 2060, and higher chance of OOM on 1080 and 2060. When the resolution is large, there is a chance that the computation time of one single attention layer is longer than the time for moving entire model to GPU. When that happens, the next attention layer will OOM since the GPU is filled with the entire model, and no remaining space is available for computing another attention layer. Most overhead detecting methods are not robust enough to be reliable on old devices (in my tests). Users need to enable this cmd flag at their own risk.
+3. `--cuda-stream`（このフラグは**速く**なりますがリスクが高くなります）。これはpytorch CUDAストリーム（GPU上の特殊なスレッド）を使用してモデルの移動とテンソルの計算を同時に行います。これはほぼすべてのモデル移動時間を排除し、小さなVRAMを持つ30XX/40XXデバイス（例：RTX 4050 6GB、RTX 3060 Laptop 6GBなど）でSDXLを約15%から25%高速化できます。しかし、2060で純粋な黒い画像（Nan出力）の可能性が高くなること、1080と2060でOOMの可能性が高くなることを観察しているため、残念ながらデフォルトに設定できません。解像度が大きい場合、単一のアテンション層の計算時間がモデル全体をGPUに移動する時間より長くなる可能性があります。その場合、GPUがモデル全体で満たされているため次のアテンション層はOOMし、別のアテンション層を計算するための残りのスペースがありません。ほとんどのオーバーヘッド検出方法は古いデバイスで信頼性が十分ではありません（私のテストでは）。ユーザーは自己責任でこのcmdフラグを有効にする必要があります。
 
-4. `--pin-shared-memory` (This flag will make things **faster** but more risky). Effective only when used together with `--cuda-stream`. This will offload modules to Shared GPU Memory instead of system RAM when offloading models. On some 30XX/40XX devices with small VRAM (eg, RTX 4050 6GB, RTX 3060 Laptop 6GB, etc), I can observe significant (at least 20\%) speed-up for SDXL. However, this unfortunately cannot be set as default because the OOM of Shared GPU Memory is a much more severe problem than common GPU memory OOM. Pytorch does not provide any robust method to unload or detect Shared GPU Memory. Once the Shared GPU Memory OOM, the entire program will crash (observed with SDXL on GTX 1060/1050/1066), and there is no dynamic method to prevent or recover from the crash. Users need to enable this cmd flag at their own risk.
+4. `--pin-shared-memory`（このフラグは**速く**なりますがリスクが高くなります）。`--cuda-stream`と一緒に使用した場合のみ有効です。モデルをオフロードする際、システムRAMの代わりに共有GPUメモリにモジュールをオフロードします。小さなVRAMを持つ一部の30XX/40XXデバイス（例：RTX 4050 6GB、RTX 3060 Laptop 6GBなど）で、SDXLの大幅な（少なくとも20%）速度向上を観察できます。しかし、共有GPUメモリのOOMは通常のGPUメモリOOMよりもはるかに深刻な問題であるため、残念ながらデフォルトに設定できません。Pytorchは共有GPUメモリをアンロードまたは検出する堅牢な方法を提供していません。共有GPUメモリがOOMになると、プログラム全体がクラッシュし（GTX 1060/1050/1066でSDXLで観察）、クラッシュを防止または回復する動的な方法はありません。ユーザーは自己責任でこのcmdフラグを有効にする必要があります。
 
-Some extra flags that can help with performance or save VRAM, or more, depending of your needs. Most of them are found on ldm_patched/modules/args_parser.py and on the normal A1111 path (modules/cmd_args.py):
+パフォーマンスを向上させたり、VRAMを節約したりするのに役立つ追加フラグ。ほとんどはldm_patched/modules/args_parser.pyと通常のA1111パス（modules/cmd_args.py）にあります:
 
     --disable-xformers
-        Disables xformers, to use other attentions like SDP.
+        xformersを無効にし、SDPなどの他のアテンションを使用します。
     --use-sage-attention
-        Uses SAGE attention implementation, from https://github.com/thu-ml/SageAttention. You need to install the library separately, as it needs triton.
+        https://github.com/thu-ml/SageAttention からのSAGEアテンション実装を使用します。tritonが必要なため、ライブラリを別途インストールする必要があります。
     --attention-split
-        Use the split cross attention optimization. Ignored when xformers is used.
+        分割クロスアテンション最適化を使用します。xformers使用時は無視されます。
     --attention-quad
-        Use the sub-quadratic cross attention optimization . Ignored when xformers is used.
+        準二次クロスアテンション最適化を使用します。xformers使用時は無視されます。
     --attention-pytorch
-        Use the new pytorch 2.0 cross attention function.
+        新しいpytorch 2.0クロスアテンション関数を使用します。
     --disable-attention-upcast
-        Disable all upcasting of attention. Should be unnecessary except for debugging.
+        すべてのアテンションのアップキャストを無効にします。デバッグ以外では不要です。
     --force-channels-last
-        Force channels last format when inferencing the models.
+        モデル推論時にチャンネルラストフォーマットを強制します。
     --disable-cuda-malloc
-        Disable cudaMallocAsync.
+        cudaMallocAsyncを無効にします。
     --gpu-device-id
-        Set the id of the cuda device this instance will use.
+        このインスタンスが使用するcudaデバイスのIDを設定します。
     --force-upcast-attention
-        Force enable attention upcasting.
+        アテンションのアップキャストを強制的に有効にします。
 
-(VRAM related)
+（VRAM関連）
 
     --always-gpu
-        Store and run everything (text encoders/CLIP models, etc... on the GPU).
+        すべて（テキストエンコーダ/CLIPモデルなど）をGPUに保存して実行します。
     --always-high-vram
-        By default models will be unloaded to CPU memory after being used. This option keeps them in GPU memory.
+        デフォルトではモデルは使用後にCPUメモリにアンロードされます。このオプションはそれらをGPUメモリに保持します。
     --always-normal-vram
-        Used to force normal vram use if lowvram gets automatically enabled.
+        lowvramが自動的に有効になった場合に通常のvram使用を強制するために使用します。
     --always-low-vram
-        Split the unet in parts to use less vram.
+        unetを分割してvramの使用量を減らします。
     --always-no-vram
-        When lowvram isn't enough.
+        lowvramでも不十分な場合。
     --always-cpu
-        To use the CPU for everything (slow).
+        すべてにCPUを使用します（遅い）。
 
-(float point type)
+（浮動小数点タイプ）
 
     --all-in-fp32
     --all-in-fp16
@@ -159,51 +159,46 @@ Some extra flags that can help with performance or save VRAM, or more, depending
     --clip-in-fp16
     --clip-in-fp32
 
-(rare platforms)
+（レアなプラットフォーム）
 
     --directml
     --disable-ipex-hijack
     --pytorch-deterministic
 
-# Lora ctl (Control)
+# Lora ctl（コントロール）
 
-I've added this repo adapted for reforge.
+このリポジトリをreforge用に適応させて追加しました。
 
-This wouldn't be possible to do without the original ones!
+これはオリジナルなしでは不可能でした！
 
-Huge credits to cheald for Lora ctl (Control). Link for the reforge extension is: https://github.com/Panchovix/sd_webui_loractl_reforge_y.git
+Lora ctl（コントロール）のchealdに大きなクレジット。reforge拡張機能へのリンク: https://github.com/Panchovix/sd_webui_loractl_reforge_y.git
 
-Many thanks to @1rre for his work for preliminary working version for lora control!
+loraコントロールの予備的な動作バージョンの作業について@1rreに感謝します！
 
-You can see how to use them on their respective repos
+使用方法はそれぞれのリポジトリでご覧いただけます
 
 https://github.com/cheald/sd-webui-loractl
 
-## Moved built-it extensions to separate repos
+## 組み込み拡張機能を別リポジトリに移動
 
-Since the UI got really cluttered with built it extensions, I have removed some of them and made them separate repos. You can install them by the extension installer on the UI or doing `git clone repo.git` replacing `repo.git` with the following links, in the extensions folder.
+UIが組み込み拡張機能で非常に煩雑になったため、一部を削除して別のリポジトリにしました。UIの拡張機能インストーラーでインストールするか、extensionsフォルダで`git clone repo.git`（`repo.git`を以下のリンクに置き換え）を実行してインストールできます。
 
 * RAUNet-MSW-MSA (HiDiffusion): https://github.com/Panchovix/reforge_jankhidiffusion.git
 * Skimmed CFG: https://github.com/Panchovix/reForge-SkimmedCFG.git
 * Forge Style Align: https://github.com/Panchovix/sd_forge_stylealign.git
 * reForge Sigmas Merge: https://github.com/Panchovix/reForge-Sigmas_merge.git
 * Differential Diffusion: https://github.com/Panchovix/reForge-DifferentialDiffusion.git
-* Auomatic CFG: https://github.com/Panchovix/reForge-AutomaticCFG.git
-* reForge_Advanced_CLIP_Text_Encode (not working yet): https://github.com/Panchovix/reForge_Advanced_CLIP_Text_Encode.git
+* Automatic CFG: https://github.com/Panchovix/reForge-AutomaticCFG.git
+* reForge_Advanced_CLIP_Text_Encode（まだ動作しません）: https://github.com/Panchovix/reForge_Advanced_CLIP_Text_Encode.git
 * Hunyuan-DiT-for-webUI-main: https://github.com/Panchovix/Hunyuan-DiT-for-webUI-main.git
 * PixArt-Sigma-for-webUI-main: https://github.com/Panchovix/PixArt-Sigma-for-webUI-main.git
 * StableCascade-for-webUI-main: https://github.com/Panchovix/StableCascade-for-webUI-main.git
 * StableDiffusion3-for-webUI-main: https://github.com/Panchovix/StableDiffusion3-for-webUI-main.git
 
-# Last "Old" Forge commit (https://github.com/lllyasviel/stable-diffusion-webui-forge/commit/bfee03d8d9415a925616f40ede030fe7a51cbcfd) before forge2.
+# forge2以前の最後の「旧」Forgeコミット (https://github.com/lllyasviel/stable-diffusion-webui-forge/commit/bfee03d8d9415a925616f40ede030fe7a51cbcfd)
 
-# Support
+# サポート
 
-Some people have been asking how to donate or support the project, and I'm really grateful for that! I did this buymeacoffe link from some suggestions!
+プロジェクトへの寄付やサポート方法について質問をいただき、本当に感謝しています！いくつかの提案からbuymeacoffeのリンクを作成しました！
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/Panchovix)
-
-
-
-
-
