@@ -161,8 +161,9 @@ Hires. fix: 有効
 ## 📂 ファイル構造
 
 ```
-extensions/custom-diffusion-ui/
+extensions-builtin/custom-diffusion-ui/
 ├── README.md                    # このファイル
+├── 使い方ガイド.md               # 詳細な日本語ガイド
 ├── metadata.ini                 # エクステンション情報
 ├── scripts/
 │   └── custom_ui.py            # メインUIスクリプト
@@ -180,7 +181,7 @@ extensions/custom-diffusion-ui/
 
 - 画像を生成してから保存してください
 - プリセット名を入力してください
-- `extensions/custom-diffusion-ui/presets/` ディレクトリの書き込み権限を確認してください
+- `extensions-builtin/custom-diffusion-ui/presets/` ディレクトリの書き込み権限を確認してください
 
 ### アップスケーラーが見つからない
 
