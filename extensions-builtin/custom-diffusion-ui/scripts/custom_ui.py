@@ -432,12 +432,39 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
         logger.info("📜 スクリプト初期化開始")
         logger.info("   ⚠️ スクリプト処理を無効化（他の拡張機能との競合回避）")
 
-        # スクリプトを無効化して基本的な画像生成のみ実行
-        p.scripts = None
+        # ダミーのScriptRunnerを作成（alwayson_scripts属性が必要）
+        class DummyScriptRunner:
+            def __init__(self):
+                self.alwayson_scripts = []
+                self.scripts = []
+                self.selectable_scripts = []
+
+            def run(self, p, *args, **kwargs):
+                pass
+
+            def process(self, p):
+                pass
+
+            def postprocess(self, p, processed):
+                pass
+
+            def before_process(self, p):
+                pass
+
+            def process_batch(self, p, *args, **kwargs):
+                pass
+
+            def postprocess_batch(self, p, *args, **kwargs):
+                pass
+
+            def postprocess_image(self, p, pp, *args, **kwargs):
+                pass
+
+        p.scripts = DummyScriptRunner()
         p.script_args = []
 
         logger.info("✅ スクリプト初期化完了")
-        logger.info(f"   p.scripts: {p.scripts} (無効化済み)")
+        logger.info(f"   p.scripts: {p.scripts} (ダミーScriptRunner)")
         logger.info(f"   p.script_args: {p.script_args}")
 
         # 画像生成実行
