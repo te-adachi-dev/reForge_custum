@@ -428,16 +428,16 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
             logger.info(f"   リストア強度: {task['face_restore_strength']}")
             logger.info(f"   信頼度: {task['adetailer_conf_1']}, {task['adetailer_conf_2']}, {task['adetailer_conf_3']}, {task['adetailer_conf_4']}")
 
-        # スクリプトの初期化
+        # スクリプトの初期化（他の拡張機能との競合を避けるため無効化）
         logger.info("📜 スクリプト初期化開始")
-        logger.info(f"   scripts.scripts_txt2img: {scripts.scripts_txt2img}")
-        logger.info(f"   scripts.scripts_txt2img の型: {type(scripts.scripts_txt2img)}")
+        logger.info("   ⚠️ スクリプト処理を無効化（他の拡張機能との競合回避）")
 
-        p.scripts = scripts.scripts_txt2img
+        # スクリプトを無効化して基本的な画像生成のみ実行
+        p.scripts = None
         p.script_args = []
 
         logger.info("✅ スクリプト初期化完了")
-        logger.info(f"   p.scripts: {p.scripts}")
+        logger.info(f"   p.scripts: {p.scripts} (無効化済み)")
         logger.info(f"   p.script_args: {p.script_args}")
 
         # 画像生成実行
