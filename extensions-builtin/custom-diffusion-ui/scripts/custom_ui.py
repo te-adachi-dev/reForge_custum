@@ -544,7 +544,9 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
         log_function_end("generate_single_image", success=True,
                         result_info=f"{len(processed.images)}枚生成, {elapsed_time:.2f}秒")
 
-        return processed.images, processed.info, processed.comments_html
+        # comments_htmlが存在しない場合は空文字列を返す
+        comments_html = getattr(processed, 'comments_html', '')
+        return processed.images, processed.info, comments_html
 
     except Exception as e:
         error_msg = f"画像生成エラー: {e}"
@@ -939,13 +941,13 @@ def create_custom_diffusion_ui():
 
     # ポップなカスタムCSSテーマ
     custom_css = """
-    /* ポップなカラーテーマ */
-    #custom_diffusion_tab {
-        --primary-color: #FF6B9D;
-        --secondary-color: #00D4AA;
-        --accent-color: #FFB347;
-        --highlight-color: #9B59B6;
-        --info-color: #3498DB;
+    /* ポップなカラーテーマ - グローバル変数 */
+    :root {
+        --pop-primary: #FF6B9D;
+        --pop-secondary: #00D4AA;
+        --pop-accent: #FFB347;
+        --pop-highlight: #9B59B6;
+        --pop-info: #3498DB;
     }
 
     /* ヘッダーのグラデーション */
@@ -955,80 +957,92 @@ def create_custom_diffusion_ui():
         -webkit-text-fill-color: transparent;
         background-clip: text;
         font-weight: bold;
+        font-size: 2em;
     }
 
     /* セクションヘッダー */
     #custom_diffusion_tab h3 {
-        color: #9B59B6;
+        color: #9B59B6 !important;
         border-bottom: 2px solid #FF6B9D;
         padding-bottom: 5px;
+        margin-top: 10px;
     }
 
     /* プライマリボタン - ピンク/マゼンタ */
-    #custom_diffusion_tab .gr-button-primary {
+    #custom_diffusion_tab button.primary,
+    #custom_diffusion_tab .primary {
         background: linear-gradient(135deg, #FF6B9D 0%, #FF8E53 100%) !important;
         border: none !important;
         color: white !important;
         font-weight: bold !important;
         box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4) !important;
+        transition: all 0.3s ease !important;
     }
 
-    #custom_diffusion_tab .gr-button-primary:hover {
+    #custom_diffusion_tab button.primary:hover,
+    #custom_diffusion_tab .primary:hover {
         background: linear-gradient(135deg, #FF8E53 0%, #FF6B9D 100%) !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(255, 107, 157, 0.6) !important;
     }
 
     /* セカンダリボタン - ターコイズ/シアン */
-    #custom_diffusion_tab .gr-button-secondary {
+    #custom_diffusion_tab button.secondary,
+    #custom_diffusion_tab .secondary {
         background: linear-gradient(135deg, #00D4AA 0%, #3498DB 100%) !important;
         border: none !important;
         color: white !important;
         font-weight: bold !important;
         box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4) !important;
+        transition: all 0.3s ease !important;
     }
 
-    #custom_diffusion_tab .gr-button-secondary:hover {
+    #custom_diffusion_tab button.secondary:hover,
+    #custom_diffusion_tab .secondary:hover {
         background: linear-gradient(135deg, #3498DB 0%, #00D4AA 100%) !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(0, 212, 170, 0.6) !important;
     }
 
     /* ストップボタン - オレンジ/レッド */
-    #custom_diffusion_tab .gr-button-stop {
+    #custom_diffusion_tab button.stop,
+    #custom_diffusion_tab .stop {
         background: linear-gradient(135deg, #FF6B6B 0%, #FFB347 100%) !important;
         border: none !important;
         color: white !important;
         font-weight: bold !important;
         box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4) !important;
+        transition: all 0.3s ease !important;
     }
 
-    #custom_diffusion_tab .gr-button-stop:hover {
+    #custom_diffusion_tab button.stop:hover,
+    #custom_diffusion_tab .stop:hover {
         background: linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%) !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
     }
 
     /* 通常ボタン - パープル */
-    #custom_diffusion_tab button:not(.gr-button-primary):not(.gr-button-secondary):not(.gr-button-stop) {
+    #custom_diffusion_tab button:not(.primary):not(.secondary):not(.stop) {
         background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%) !important;
         border: none !important;
         color: white !important;
         box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3) !important;
+        transition: all 0.3s ease !important;
     }
 
-    #custom_diffusion_tab button:not(.gr-button-primary):not(.gr-button-secondary):not(.gr-button-stop):hover {
+    #custom_diffusion_tab button:not(.primary):not(.secondary):not(.stop):hover {
         background: linear-gradient(135deg, #8E44AD 0%, #9B59B6 100%) !important;
-        transform: translateY(-1px);
+        transform: translateY(-1px) !important;
     }
 
     /* スライダー */
     #custom_diffusion_tab input[type="range"] {
-        accent-color: #FF6B9D;
+        accent-color: #FF6B9D !important;
     }
 
     /* チェックボックス */
     #custom_diffusion_tab input[type="checkbox"]:checked {
-        accent-color: #00D4AA;
+        accent-color: #00D4AA !important;
     }
 
     /* テキストボックスのフォーカス */
@@ -1036,6 +1050,11 @@ def create_custom_diffusion_ui():
     #custom_diffusion_tab input:focus {
         border-color: #FF6B9D !important;
         box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2) !important;
+    }
+
+    /* テキストエリアの背景 */
+    #custom_diffusion_tab textarea {
+        background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(0, 212, 170, 0.05) 100%) !important;
     }
 
     /* ギャラリー */
@@ -1051,8 +1070,22 @@ def create_custom_diffusion_ui():
     }
 
     /* ドロップダウン */
-    #custom_diffusion_tab .gr-dropdown {
+    #custom_diffusion_tab select,
+    #custom_diffusion_tab .wrap {
         border-color: #9B59B6 !important;
+    }
+
+    /* ラベル */
+    #custom_diffusion_tab label span {
+        color: #9B59B6 !important;
+        font-weight: 600 !important;
+    }
+
+    /* パネル背景 */
+    #custom_diffusion_tab .panel {
+        background: linear-gradient(180deg, rgba(155, 89, 182, 0.1) 0%, rgba(255, 107, 157, 0.05) 100%) !important;
+        border-radius: 10px;
+        padding: 15px;
     }
     """
 
