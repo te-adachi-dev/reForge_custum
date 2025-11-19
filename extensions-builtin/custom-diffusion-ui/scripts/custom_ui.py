@@ -432,12 +432,15 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
         logger.info("📜 スクリプト初期化開始")
         logger.info("   ⚠️ スクリプト処理を無効化（他の拡張機能との競合回避）")
 
-        # ダミーのScriptRunnerを作成（alwayson_scripts属性が必要）
+        # ダミーのScriptRunnerを作成（全メソッド実装）
         class DummyScriptRunner:
+            """process_images()が呼び出す全メソッドを持つダミーScriptRunner"""
+
             def __init__(self):
                 self.alwayson_scripts = []
                 self.scripts = []
                 self.selectable_scripts = []
+                logger.debug("DummyScriptRunner 初期化完了")
 
             def run(self, p, *args, **kwargs):
                 pass
@@ -451,14 +454,74 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
             def before_process(self, p):
                 pass
 
-            def process_batch(self, p, *args, **kwargs):
+            def before_process_batch(self, p, **kwargs):
+                """バッチ処理前のコールバック"""
                 pass
 
-            def postprocess_batch(self, p, *args, **kwargs):
+            def before_process_init_images(self, p, pp, **kwargs):
+                """初期画像処理前のコールバック"""
                 pass
 
-            def postprocess_image(self, p, pp, *args, **kwargs):
+            def after_extra_networks_activate(self, p, **kwargs):
+                """追加ネットワークアクティベート後のコールバック"""
                 pass
+
+            def process_batch(self, p, **kwargs):
+                pass
+
+            def postprocess_batch(self, p, images, **kwargs):
+                pass
+
+            def postprocess_batch_list(self, p, pp, **kwargs):
+                """バッチリスト後処理のコールバック"""
+                pass
+
+            def post_sample(self, p, ps):
+                """サンプリング後のコールバック"""
+                pass
+
+            def on_mask_blend(self, p, mba):
+                """マスクブレンドのコールバック"""
+                pass
+
+            def postprocess_image(self, p, pp):
+                pass
+
+            def postprocess_maskoverlay(self, p, ppmo):
+                """マスクオーバーレイ後処理のコールバック"""
+                pass
+
+            def postprocess_image_after_composite(self, p, pp):
+                """合成後の画像後処理のコールバック"""
+                pass
+
+            def before_component(self, component, **kwargs):
+                """コンポーネント前のコールバック"""
+                pass
+
+            def after_component(self, component, **kwargs):
+                """コンポーネント後のコールバック"""
+                pass
+
+            def before_hr(self, p):
+                """Hires.fix前のコールバック"""
+                pass
+
+            def setup_scrips(self, p, *, is_ui=True):
+                """スクリプトセットアップ"""
+                pass
+
+            def process_before_every_step(self, p, **kwargs):
+                """各ステップ前のコールバック"""
+                pass
+
+            def process_before_every_sampling(self, p, **kwargs):
+                """各サンプリング前のコールバック"""
+                pass
+
+            def ordered_scripts(self, method_name):
+                """メソッド名に対応するスクリプトリストを返す"""
+                return []
 
         p.scripts = DummyScriptRunner()
         p.script_args = []
@@ -874,8 +937,127 @@ def create_custom_diffusion_ui():
 
     log_function_start("create_custom_diffusion_ui")
 
+    # ポップなカスタムCSSテーマ
+    custom_css = """
+    /* ポップなカラーテーマ */
+    #custom_diffusion_tab {
+        --primary-color: #FF6B9D;
+        --secondary-color: #00D4AA;
+        --accent-color: #FFB347;
+        --highlight-color: #9B59B6;
+        --info-color: #3498DB;
+    }
+
+    /* ヘッダーのグラデーション */
+    #custom_diffusion_tab h1 {
+        background: linear-gradient(135deg, #FF6B9D 0%, #FFB347 50%, #00D4AA 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+    }
+
+    /* セクションヘッダー */
+    #custom_diffusion_tab h3 {
+        color: #9B59B6;
+        border-bottom: 2px solid #FF6B9D;
+        padding-bottom: 5px;
+    }
+
+    /* プライマリボタン - ピンク/マゼンタ */
+    #custom_diffusion_tab .gr-button-primary {
+        background: linear-gradient(135deg, #FF6B9D 0%, #FF8E53 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: bold !important;
+        box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4) !important;
+    }
+
+    #custom_diffusion_tab .gr-button-primary:hover {
+        background: linear-gradient(135deg, #FF8E53 0%, #FF6B9D 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 157, 0.6) !important;
+    }
+
+    /* セカンダリボタン - ターコイズ/シアン */
+    #custom_diffusion_tab .gr-button-secondary {
+        background: linear-gradient(135deg, #00D4AA 0%, #3498DB 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: bold !important;
+        box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4) !important;
+    }
+
+    #custom_diffusion_tab .gr-button-secondary:hover {
+        background: linear-gradient(135deg, #3498DB 0%, #00D4AA 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 212, 170, 0.6) !important;
+    }
+
+    /* ストップボタン - オレンジ/レッド */
+    #custom_diffusion_tab .gr-button-stop {
+        background: linear-gradient(135deg, #FF6B6B 0%, #FFB347 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: bold !important;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4) !important;
+    }
+
+    #custom_diffusion_tab .gr-button-stop:hover {
+        background: linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%) !important;
+        transform: translateY(-2px);
+    }
+
+    /* 通常ボタン - パープル */
+    #custom_diffusion_tab button:not(.gr-button-primary):not(.gr-button-secondary):not(.gr-button-stop) {
+        background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%) !important;
+        border: none !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3) !important;
+    }
+
+    #custom_diffusion_tab button:not(.gr-button-primary):not(.gr-button-secondary):not(.gr-button-stop):hover {
+        background: linear-gradient(135deg, #8E44AD 0%, #9B59B6 100%) !important;
+        transform: translateY(-1px);
+    }
+
+    /* スライダー */
+    #custom_diffusion_tab input[type="range"] {
+        accent-color: #FF6B9D;
+    }
+
+    /* チェックボックス */
+    #custom_diffusion_tab input[type="checkbox"]:checked {
+        accent-color: #00D4AA;
+    }
+
+    /* テキストボックスのフォーカス */
+    #custom_diffusion_tab textarea:focus,
+    #custom_diffusion_tab input:focus {
+        border-color: #FF6B9D !important;
+        box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2) !important;
+    }
+
+    /* ギャラリー */
+    #custom_diffusion_tab .gallery-item {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    #custom_diffusion_tab .gallery-item:hover {
+        border-color: #FF6B9D;
+        box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+    }
+
+    /* ドロップダウン */
+    #custom_diffusion_tab .gr-dropdown {
+        border-color: #9B59B6 !important;
+    }
+    """
+
     try:
-        with gr.Blocks(analytics_enabled=False) as custom_interface:
+        with gr.Blocks(analytics_enabled=False, css=custom_css, elem_id="custom_diffusion_tab") as custom_interface:
             gr.Markdown("""
             # 🎨 Custom Diffusion UI
 
