@@ -16,7 +16,7 @@ from collections import deque
 import gradio as gr
 from PIL import Image
 
-from modules import script_callbacks, shared, sd_samplers, sd_schedulers
+from modules import script_callbacks, shared, sd_samplers, sd_schedulers, scripts
 from modules.processing import StableDiffusionProcessingTxt2Img, process_images, Processed
 from modules.ui_components import FormRow
 
@@ -255,6 +255,10 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
         p.extra_generation_params["ADetailer Conf 3rd"] = task['adetailer_conf_3']
         p.extra_generation_params["ADetailer Conf 4th"] = task['adetailer_conf_4']
         p.extra_generation_params["Face Restore Strength"] = task['face_restore_strength']
+
+    # スクリプトの初期化
+    p.scripts = scripts.scripts_txt2img
+    p.script_args = [0] * p.scripts.scripts_count if p.scripts else []
 
     # 画像生成実行
     processed: Processed = process_images(p)
