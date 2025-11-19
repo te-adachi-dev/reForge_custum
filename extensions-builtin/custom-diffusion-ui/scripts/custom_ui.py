@@ -951,7 +951,7 @@ def create_custom_diffusion_ui():
             outputs=[history_gallery],
         )
 
-    return custom_interface, "Custom Diffusion", "custom_diffusion"
+    return [(custom_interface, "Custom Diffusion", "custom_diffusion")]
 
 
 # タブをUIに登録
