@@ -1,0 +1,155 @@
+/* Custom Diffusion UI - ポップなカラーテーマ */
+
+/* グローバル変数 */
+:root {
+    --pop-primary: #FF6B9D;
+    --pop-secondary: #00D4AA;
+    --pop-accent: #FFB347;
+    --pop-highlight: #9B59B6;
+    --pop-info: #3498DB;
+}
+
+/* ヘッダーのグラデーション */
+#custom_diffusion_tab h1 {
+    background: linear-gradient(135deg, #FF6B9D 0%, #FFB347 50%, #00D4AA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+    font-size: 2em;
+}
+
+/* セクションヘッダー */
+#custom_diffusion_tab h3 {
+    color: #9B59B6 !important;
+    border-bottom: 2px solid #FF6B9D;
+    padding-bottom: 5px;
+    margin-top: 10px;
+}
+
+/* プライマリボタン - ピンク/マゼンタ */
+#custom_diffusion_tab button.primary,
+#custom_diffusion_tab .primary {
+    background: linear-gradient(135deg, #FF6B9D 0%, #FF8E53 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+#custom_diffusion_tab button.primary:hover,
+#custom_diffusion_tab .primary:hover {
+    background: linear-gradient(135deg, #FF8E53 0%, #FF6B9D 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 107, 157, 0.6) !important;
+}
+
+/* セカンダリボタン - ターコイズ/シアン */
+#custom_diffusion_tab button.secondary,
+#custom_diffusion_tab .secondary {
+    background: linear-gradient(135deg, #00D4AA 0%, #3498DB 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+#custom_diffusion_tab button.secondary:hover,
+#custom_diffusion_tab .secondary:hover {
+    background: linear-gradient(135deg, #3498DB 0%, #00D4AA 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 212, 170, 0.6) !important;
+}
+
+/* ストップボタン - オレンジ/レッド */
+#custom_diffusion_tab button.stop,
+#custom_diffusion_tab .stop {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FFB347 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+#custom_diffusion_tab button.stop:hover,
+#custom_diffusion_tab .stop:hover {
+    background: linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 通常ボタン - パープル */
+#custom_diffusion_tab button:not(.primary):not(.secondary):not(.stop) {
+    background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%) !important;
+    border: none !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+#custom_diffusion_tab button:not(.primary):not(.secondary):not(.stop):hover {
+    background: linear-gradient(135deg, #8E44AD 0%, #9B59B6 100%) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* スライダー */
+#custom_diffusion_tab input[type="range"] {
+    accent-color: #FF6B9D !important;
+}
+
+/* チェックボックス */
+#custom_diffusion_tab input[type="checkbox"]:checked {
+    accent-color: #00D4AA !important;
+}
+
+/* テキストボックスのフォーカス */
+#custom_diffusion_tab textarea:focus,
+#custom_diffusion_tab input:focus {
+    border-color: #FF6B9D !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2) !important;
+}
+
+/* テキストエリアの背景 */
+#custom_diffusion_tab textarea {
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(0, 212, 170, 0.05) 100%) !important;
+}
+
+/* ギャラリー */
+#custom_diffusion_tab .gallery-item {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#custom_diffusion_tab .gallery-item:hover {
+    border-color: #FF6B9D;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+}
+
+/* ドロップダウン */
+#custom_diffusion_tab select,
+#custom_diffusion_tab .wrap {
+    border-color: #9B59B6 !important;
+}
+
+/* ラベル */
+#custom_diffusion_tab label span {
+    color: #9B59B6 !important;
+    font-weight: 600 !important;
+}
+
+/* パネル背景 */
+#custom_diffusion_tab .panel {
+    background: linear-gradient(180deg, rgba(155, 89, 182, 0.1) 0%, rgba(255, 107, 157, 0.05) 100%) !important;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+/* カスタムギャラリー */
+#custom_ui_gallery,
+#preset_history_gallery {
+    border: 2px solid #9B59B6 !important;
+    border-radius: 10px;
+}

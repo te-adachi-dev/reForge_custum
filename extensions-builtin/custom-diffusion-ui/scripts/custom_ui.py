@@ -575,9 +575,13 @@ def generate_image(
     denoising_strength: float,
     enable_face_restore: bool,
     face_restore_strength: float,
+    adetailer_enable_1: bool,
     adetailer_conf_1: float,
+    adetailer_enable_2: bool,
     adetailer_conf_2: float,
+    adetailer_enable_3: bool,
     adetailer_conf_3: float,
+    adetailer_enable_4: bool,
     adetailer_conf_4: float,
 ) -> Tuple[List[Image.Image], str, str]:
     """即時画像生成"""
@@ -604,9 +608,13 @@ def generate_image(
             'denoising_strength': denoising_strength,
             'enable_face_restore': enable_face_restore,
             'face_restore_strength': face_restore_strength,
+            'adetailer_enable_1': adetailer_enable_1,
             'adetailer_conf_1': adetailer_conf_1,
+            'adetailer_enable_2': adetailer_enable_2,
             'adetailer_conf_2': adetailer_conf_2,
+            'adetailer_enable_3': adetailer_enable_3,
             'adetailer_conf_3': adetailer_conf_3,
+            'adetailer_enable_4': adetailer_enable_4,
             'adetailer_conf_4': adetailer_conf_4,
         }
 
@@ -641,9 +649,13 @@ def add_to_queue(
     denoising_strength: float,
     enable_face_restore: bool,
     face_restore_strength: float,
+    adetailer_enable_1: bool,
     adetailer_conf_1: float,
+    adetailer_enable_2: bool,
     adetailer_conf_2: float,
+    adetailer_enable_3: bool,
     adetailer_conf_3: float,
+    adetailer_enable_4: bool,
     adetailer_conf_4: float,
 ) -> Tuple[str, str]:
     """タスクをキューに追加"""
@@ -674,9 +686,13 @@ def add_to_queue(
             'denoising_strength': denoising_strength,
             'enable_face_restore': enable_face_restore,
             'face_restore_strength': face_restore_strength,
+            'adetailer_enable_1': adetailer_enable_1,
             'adetailer_conf_1': adetailer_conf_1,
+            'adetailer_enable_2': adetailer_enable_2,
             'adetailer_conf_2': adetailer_conf_2,
+            'adetailer_enable_3': adetailer_enable_3,
             'adetailer_conf_3': adetailer_conf_3,
+            'adetailer_enable_4': adetailer_enable_4,
             'adetailer_conf_4': adetailer_conf_4,
         }
 
@@ -794,9 +810,13 @@ def save_preset(
     denoising_strength: float,
     enable_face_restore: bool,
     face_restore_strength: float,
+    adetailer_enable_1: bool,
     adetailer_conf_1: float,
+    adetailer_enable_2: bool,
     adetailer_conf_2: float,
+    adetailer_enable_3: bool,
     adetailer_conf_3: float,
+    adetailer_enable_4: bool,
     adetailer_conf_4: float,
 ) -> Tuple[str, List]:
     """現在の設定をプリセットとして保存"""
@@ -815,17 +835,49 @@ def save_preset(
         logger.info(f"🖼️ ギャラリー画像数: {len(gallery_images)}")
         logger.info(f"🖼️ ギャラリー画像タイプ: {type(gallery_images[0])}")
 
-        # 最初の画像を取得
+        # 最初の画像を取得（様々な形式に対応）
         first_image = gallery_images[0]
-        if isinstance(first_image, str):
+
+        # dict型の場合（Gradio 4.x系）
+        if isinstance(first_image, dict):
+            logger.info(f"📂 dict形式の画像を検出: keys={first_image.keys()}")
+            # 'image' キーまたは 'name' キーを探す
+            if 'image' in first_image:
+                img_data = first_image['image']
+                if isinstance(img_data, str):
+                    logger.info(f"📂 dictから画像パスを取得: {img_data}")
+                    first_image = Image.open(img_data)
+                elif isinstance(img_data, Image.Image):
+                    first_image = img_data
+                else:
+                    first_image = Image.open(img_data)
+            elif 'name' in first_image:
+                img_path = first_image['name']
+                logger.info(f"📂 dictから画像パスを取得: {img_path}")
+                first_image = Image.open(img_path)
+            else:
+                raise ValueError(f"未知のdict形式: {first_image.keys()}")
+
+        # 文字列（パス）の場合
+        elif isinstance(first_image, str):
             logger.info(f"📂 画像パスから読み込み: {first_image}")
             first_image = Image.open(first_image)
+
+        # タプルの場合
         elif isinstance(first_image, tuple):
             if isinstance(first_image[0], str):
                 logger.info(f"📂 タプルから画像パスを取得: {first_image[0]}")
                 first_image = Image.open(first_image[0])
             else:
                 first_image = first_image[0]
+
+        # PIL.Imageの場合はそのまま
+        elif isinstance(first_image, Image.Image):
+            logger.info("📂 PIL.Image形式の画像を検出")
+        else:
+            raise ValueError(f"未対応の画像形式: {type(first_image)}")
+
+        logger.info(f"✅ 画像取得成功: {first_image.size}")
 
         # 設定を辞書にまとめる
         settings = {
@@ -847,9 +899,13 @@ def save_preset(
             "denoising_strength": denoising_strength,
             "enable_face_restore": enable_face_restore,
             "face_restore_strength": face_restore_strength,
+            "adetailer_enable_1": adetailer_enable_1,
             "adetailer_conf_1": adetailer_conf_1,
+            "adetailer_enable_2": adetailer_enable_2,
             "adetailer_conf_2": adetailer_conf_2,
+            "adetailer_enable_3": adetailer_enable_3,
             "adetailer_conf_3": adetailer_conf_3,
+            "adetailer_enable_4": adetailer_enable_4,
             "adetailer_conf_4": adetailer_conf_4,
         }
 
@@ -874,7 +930,7 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
         index = evt.index
         if index >= len(preset_manager.presets):
             logger.warning(f"⚠️ インデックスが範囲外: {index} >= {len(preset_manager.presets)}")
-            return tuple([None] * 24)
+            return tuple([None] * 28)
 
         preset = preset_manager.presets[index]
         settings = preset["settings"]
@@ -902,9 +958,13 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
             settings.get("denoising_strength", 0.7),
             settings.get("enable_face_restore", False),
             settings.get("face_restore_strength", 0.5),
+            settings.get("adetailer_enable_1", True),
             settings.get("adetailer_conf_1", 0.3),
+            settings.get("adetailer_enable_2", False),
             settings.get("adetailer_conf_2", 0.3),
+            settings.get("adetailer_enable_3", False),
             settings.get("adetailer_conf_3", 0.3),
+            settings.get("adetailer_enable_4", False),
             settings.get("adetailer_conf_4", 0.3),
             f"プリセット '{preset['name']}' を読み込みました！",
             "",
@@ -918,7 +978,7 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
         logger.error(f"❌ {error_msg}")
         logger.error(traceback.format_exc())
         log_function_end("load_preset_from_gallery", success=False, result_info=str(e))
-        return tuple([None] * 24)
+        return tuple([None] * 28)
 
 
 def refresh_history_gallery():
@@ -1249,38 +1309,68 @@ def create_custom_diffusion_ui():
                                 value=0.5,
                             )
 
+                            # 1st 信頼度
                             with gr.Row():
+                                adetailer_enable_1 = gr.Checkbox(
+                                    label="1st有効",
+                                    value=True,
+                                    scale=1,
+                                )
                                 adetailer_conf_1 = gr.Slider(
                                     label="1st 信頼度",
                                     minimum=0.0,
                                     maximum=1.0,
                                     step=0.01,
                                     value=0.3,
+                                    scale=3,
                                 )
 
+                            # 2nd 信頼度
+                            with gr.Row():
+                                adetailer_enable_2 = gr.Checkbox(
+                                    label="2nd有効",
+                                    value=False,
+                                    scale=1,
+                                )
                                 adetailer_conf_2 = gr.Slider(
                                     label="2nd 信頼度",
                                     minimum=0.0,
                                     maximum=1.0,
                                     step=0.01,
                                     value=0.3,
+                                    scale=3,
                                 )
 
+                            # 3rd 信頼度
                             with gr.Row():
+                                adetailer_enable_3 = gr.Checkbox(
+                                    label="3rd有効",
+                                    value=False,
+                                    scale=1,
+                                )
                                 adetailer_conf_3 = gr.Slider(
                                     label="3rd 信頼度",
                                     minimum=0.0,
                                     maximum=1.0,
                                     step=0.01,
                                     value=0.3,
+                                    scale=3,
                                 )
 
+                            # 4th 信頼度
+                            with gr.Row():
+                                adetailer_enable_4 = gr.Checkbox(
+                                    label="4th有効",
+                                    value=False,
+                                    scale=1,
+                                )
                                 adetailer_conf_4 = gr.Slider(
                                     label="4th 信頼度",
                                     minimum=0.0,
                                     maximum=1.0,
                                     step=0.01,
                                     value=0.3,
+                                    scale=3,
                                 )
 
                     # 生成ボタン
@@ -1405,9 +1495,13 @@ def create_custom_diffusion_ui():
                 denoising_strength,
                 enable_face_restore,
                 face_restore_strength,
+                adetailer_enable_1,
                 adetailer_conf_1,
+                adetailer_enable_2,
                 adetailer_conf_2,
+                adetailer_enable_3,
                 adetailer_conf_3,
+                adetailer_enable_4,
                 adetailer_conf_4,
             ]
 
@@ -1488,9 +1582,13 @@ def create_custom_diffusion_ui():
                     denoising_strength,
                     enable_face_restore,
                     face_restore_strength,
+                    adetailer_enable_1,
                     adetailer_conf_1,
+                    adetailer_enable_2,
                     adetailer_conf_2,
+                    adetailer_enable_3,
                     adetailer_conf_3,
+                    adetailer_enable_4,
                     adetailer_conf_4,
                     preset_message,
                     preset_name,
