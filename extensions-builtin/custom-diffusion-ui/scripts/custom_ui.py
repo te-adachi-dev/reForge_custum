@@ -258,7 +258,7 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
 
     # スクリプトの初期化
     p.scripts = scripts.scripts_txt2img
-    p.script_args = [0] * p.scripts.scripts_count if p.scripts else []
+    p.script_args = []
 
     # 画像生成実行
     processed: Processed = process_images(p)
