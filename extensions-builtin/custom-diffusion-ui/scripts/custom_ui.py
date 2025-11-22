@@ -835,6 +835,15 @@ def save_preset(
         logger.info(f"🖼️ ギャラリー画像数: {len(gallery_images)}")
         logger.info(f"🖼️ ギャラリー画像タイプ: {type(gallery_images[0])}")
 
+        # 画像パスからクエリパラメータを除去するヘルパー関数
+        def clean_image_path(path: str) -> str:
+            """画像パスからクエリパラメータ(?...)を除去"""
+            if '?' in path:
+                clean_path = path.split('?')[0]
+                logger.info(f"   クエリパラメータを除去: {path} -> {clean_path}")
+                return clean_path
+            return path
+
         # 最初の画像を取得（様々な形式に対応）
         first_image = gallery_images[0]
 
@@ -845,14 +854,15 @@ def save_preset(
             if 'image' in first_image:
                 img_data = first_image['image']
                 if isinstance(img_data, str):
-                    logger.info(f"📂 dictから画像パスを取得: {img_data}")
-                    first_image = Image.open(img_data)
+                    img_path = clean_image_path(img_data)
+                    logger.info(f"📂 dictから画像パスを取得: {img_path}")
+                    first_image = Image.open(img_path)
                 elif isinstance(img_data, Image.Image):
                     first_image = img_data
                 else:
                     first_image = Image.open(img_data)
             elif 'name' in first_image:
-                img_path = first_image['name']
+                img_path = clean_image_path(first_image['name'])
                 logger.info(f"📂 dictから画像パスを取得: {img_path}")
                 first_image = Image.open(img_path)
             else:
@@ -860,14 +870,16 @@ def save_preset(
 
         # 文字列（パス）の場合
         elif isinstance(first_image, str):
-            logger.info(f"📂 画像パスから読み込み: {first_image}")
-            first_image = Image.open(first_image)
+            img_path = clean_image_path(first_image)
+            logger.info(f"📂 画像パスから読み込み: {img_path}")
+            first_image = Image.open(img_path)
 
         # タプルの場合
         elif isinstance(first_image, tuple):
             if isinstance(first_image[0], str):
-                logger.info(f"📂 タプルから画像パスを取得: {first_image[0]}")
-                first_image = Image.open(first_image[0])
+                img_path = clean_image_path(first_image[0])
+                logger.info(f"📂 タプルから画像パスを取得: {img_path}")
+                first_image = Image.open(img_path)
             else:
                 first_image = first_image[0]
 
