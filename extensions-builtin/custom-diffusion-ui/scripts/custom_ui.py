@@ -416,17 +416,12 @@ def generate_single_image(task: Dict[str, Any]) -> Tuple[List[Image.Image], str,
 
         logger.info("✅ StableDiffusionProcessingTxt2Img オブジェクト作成完了")
 
-        # フェイスリストア設定
-        if task['enable_face_restore']:
-            logger.info("👤 フェイスリストア設定を適用")
+        # ADetailer設定（シンプル）
+        if task['enable_adetailer']:
+            logger.info("👤 ADetailer設定を適用（デフォルト: face_yolov8n.pt）")
             p.restore_faces = True
-            p.extra_generation_params["ADetailer Conf 1st"] = task['adetailer_conf_1']
-            p.extra_generation_params["ADetailer Conf 2nd"] = task['adetailer_conf_2']
-            p.extra_generation_params["ADetailer Conf 3rd"] = task['adetailer_conf_3']
-            p.extra_generation_params["ADetailer Conf 4th"] = task['adetailer_conf_4']
-            p.extra_generation_params["Face Restore Strength"] = task['face_restore_strength']
-            logger.info(f"   リストア強度: {task['face_restore_strength']}")
-            logger.info(f"   信頼度: {task['adetailer_conf_1']}, {task['adetailer_conf_2']}, {task['adetailer_conf_3']}, {task['adetailer_conf_4']}")
+            p.extra_generation_params["ADetailer"] = "Enabled"
+            logger.info("   ✅ ADetailer有効化")
 
         # スクリプトの初期化（他の拡張機能との競合を避けるため無効化）
         logger.info("📜 スクリプト初期化開始")
@@ -573,16 +568,7 @@ def generate_image(
     hr_upscaler: str,
     hr_steps: int,
     denoising_strength: float,
-    enable_face_restore: bool,
-    face_restore_strength: float,
-    adetailer_enable_1: bool,
-    adetailer_conf_1: float,
-    adetailer_enable_2: bool,
-    adetailer_conf_2: float,
-    adetailer_enable_3: bool,
-    adetailer_conf_3: float,
-    adetailer_enable_4: bool,
-    adetailer_conf_4: float,
+    enable_adetailer: bool,
 ) -> Tuple[List[Image.Image], str, str]:
     """即時画像生成"""
 
@@ -606,16 +592,7 @@ def generate_image(
             'hr_upscaler': hr_upscaler,
             'hr_steps': hr_steps,
             'denoising_strength': denoising_strength,
-            'enable_face_restore': enable_face_restore,
-            'face_restore_strength': face_restore_strength,
-            'adetailer_enable_1': adetailer_enable_1,
-            'adetailer_conf_1': adetailer_conf_1,
-            'adetailer_enable_2': adetailer_enable_2,
-            'adetailer_conf_2': adetailer_conf_2,
-            'adetailer_enable_3': adetailer_enable_3,
-            'adetailer_conf_3': adetailer_conf_3,
-            'adetailer_enable_4': adetailer_enable_4,
-            'adetailer_conf_4': adetailer_conf_4,
+            'enable_adetailer': enable_adetailer,
         }
 
         result = generate_single_image(task)
@@ -647,16 +624,7 @@ def add_to_queue(
     hr_upscaler: str,
     hr_steps: int,
     denoising_strength: float,
-    enable_face_restore: bool,
-    face_restore_strength: float,
-    adetailer_enable_1: bool,
-    adetailer_conf_1: float,
-    adetailer_enable_2: bool,
-    adetailer_conf_2: float,
-    adetailer_enable_3: bool,
-    adetailer_conf_3: float,
-    adetailer_enable_4: bool,
-    adetailer_conf_4: float,
+    enable_adetailer: bool,
 ) -> Tuple[str, str]:
     """タスクをキューに追加"""
 
@@ -684,16 +652,7 @@ def add_to_queue(
             'hr_upscaler': hr_upscaler,
             'hr_steps': hr_steps,
             'denoising_strength': denoising_strength,
-            'enable_face_restore': enable_face_restore,
-            'face_restore_strength': face_restore_strength,
-            'adetailer_enable_1': adetailer_enable_1,
-            'adetailer_conf_1': adetailer_conf_1,
-            'adetailer_enable_2': adetailer_enable_2,
-            'adetailer_conf_2': adetailer_conf_2,
-            'adetailer_enable_3': adetailer_enable_3,
-            'adetailer_conf_3': adetailer_conf_3,
-            'adetailer_enable_4': adetailer_enable_4,
-            'adetailer_conf_4': adetailer_conf_4,
+            'enable_adetailer': enable_adetailer,
         }
 
         task_id = generation_queue.add_task(task)
@@ -808,16 +767,7 @@ def save_preset(
     hr_upscaler: str,
     hr_steps: int,
     denoising_strength: float,
-    enable_face_restore: bool,
-    face_restore_strength: float,
-    adetailer_enable_1: bool,
-    adetailer_conf_1: float,
-    adetailer_enable_2: bool,
-    adetailer_conf_2: float,
-    adetailer_enable_3: bool,
-    adetailer_conf_3: float,
-    adetailer_enable_4: bool,
-    adetailer_conf_4: float,
+    enable_adetailer: bool,
 ) -> Tuple[str, List]:
     """現在の設定をプリセットとして保存"""
 
@@ -909,16 +859,7 @@ def save_preset(
             "hr_upscaler": hr_upscaler,
             "hr_steps": hr_steps,
             "denoising_strength": denoising_strength,
-            "enable_face_restore": enable_face_restore,
-            "face_restore_strength": face_restore_strength,
-            "adetailer_enable_1": adetailer_enable_1,
-            "adetailer_conf_1": adetailer_conf_1,
-            "adetailer_enable_2": adetailer_enable_2,
-            "adetailer_conf_2": adetailer_conf_2,
-            "adetailer_enable_3": adetailer_enable_3,
-            "adetailer_conf_3": adetailer_conf_3,
-            "adetailer_enable_4": adetailer_enable_4,
-            "adetailer_conf_4": adetailer_conf_4,
+            "enable_adetailer": enable_adetailer,
         }
 
         message = preset_manager.add_preset(preset_name, settings, first_image)
@@ -942,7 +883,7 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
         index = evt.index
         if index >= len(preset_manager.presets):
             logger.warning(f"⚠️ インデックスが範囲外: {index} >= {len(preset_manager.presets)}")
-            return tuple([None] * 28)
+            return tuple([None] * 19)
 
         preset = preset_manager.presets[index]
         settings = preset["settings"]
@@ -968,16 +909,7 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
             settings.get("hr_upscaler", "Latent"),
             settings.get("hr_steps", 20),
             settings.get("denoising_strength", 0.7),
-            settings.get("enable_face_restore", False),
-            settings.get("face_restore_strength", 0.5),
-            settings.get("adetailer_enable_1", True),
-            settings.get("adetailer_conf_1", 0.3),
-            settings.get("adetailer_enable_2", False),
-            settings.get("adetailer_conf_2", 0.3),
-            settings.get("adetailer_enable_3", False),
-            settings.get("adetailer_conf_3", 0.3),
-            settings.get("adetailer_enable_4", False),
-            settings.get("adetailer_conf_4", 0.3),
+            settings.get("enable_adetailer", False),
             f"プリセット '{preset['name']}' を読み込みました！",
             "",
         )
@@ -990,7 +922,7 @@ def load_preset_from_gallery(evt: gr.SelectData) -> Tuple:
         logger.error(f"❌ {error_msg}")
         logger.error(traceback.format_exc())
         log_function_end("load_preset_from_gallery", success=False, result_info=str(e))
-        return tuple([None] * 28)
+        return tuple([None] * 19)
 
 
 def refresh_history_gallery():
@@ -1304,86 +1236,12 @@ def create_custom_diffusion_ui():
                                 value=0.7,
                             )
 
-                    gr.Markdown("### 👤 ADetailer設定（フェイスリストア）")
+                    gr.Markdown("### 👤 ADetailer設定")
 
-                    enable_face_restore = gr.Checkbox(
-                        label="フェイスリストアを有効化",
+                    enable_adetailer = gr.Checkbox(
+                        label="ADetailer有効（face_yolov8n.pt使用、デフォルト設定）",
                         value=False,
                     )
-
-                    with gr.Row(visible=True) as adetailer_options:
-                        with gr.Column():
-                            face_restore_strength = gr.Slider(
-                                label="リストア強度",
-                                minimum=0.0,
-                                maximum=1.0,
-                                step=0.01,
-                                value=0.5,
-                            )
-
-                            # 1st 信頼度
-                            with gr.Row():
-                                adetailer_enable_1 = gr.Checkbox(
-                                    label="1st有効",
-                                    value=True,
-                                    scale=1,
-                                )
-                                adetailer_conf_1 = gr.Slider(
-                                    label="1st 信頼度",
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.01,
-                                    value=0.3,
-                                    scale=3,
-                                )
-
-                            # 2nd 信頼度
-                            with gr.Row():
-                                adetailer_enable_2 = gr.Checkbox(
-                                    label="2nd有効",
-                                    value=False,
-                                    scale=1,
-                                )
-                                adetailer_conf_2 = gr.Slider(
-                                    label="2nd 信頼度",
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.01,
-                                    value=0.3,
-                                    scale=3,
-                                )
-
-                            # 3rd 信頼度
-                            with gr.Row():
-                                adetailer_enable_3 = gr.Checkbox(
-                                    label="3rd有効",
-                                    value=False,
-                                    scale=1,
-                                )
-                                adetailer_conf_3 = gr.Slider(
-                                    label="3rd 信頼度",
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.01,
-                                    value=0.3,
-                                    scale=3,
-                                )
-
-                            # 4th 信頼度
-                            with gr.Row():
-                                adetailer_enable_4 = gr.Checkbox(
-                                    label="4th有効",
-                                    value=False,
-                                    scale=1,
-                                )
-                                adetailer_conf_4 = gr.Slider(
-                                    label="4th 信頼度",
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.01,
-                                    value=0.3,
-                                    scale=3,
-                                )
 
                     # 生成ボタン
                     gr.Markdown("### 🚀 生成")
@@ -1505,16 +1363,7 @@ def create_custom_diffusion_ui():
                 hr_upscaler,
                 hr_steps,
                 denoising_strength,
-                enable_face_restore,
-                face_restore_strength,
-                adetailer_enable_1,
-                adetailer_conf_1,
-                adetailer_enable_2,
-                adetailer_conf_2,
-                adetailer_enable_3,
-                adetailer_conf_3,
-                adetailer_enable_4,
-                adetailer_conf_4,
+                enable_adetailer,
             ]
 
             # イベントハンドラを設定
@@ -1592,16 +1441,7 @@ def create_custom_diffusion_ui():
                     hr_upscaler,
                     hr_steps,
                     denoising_strength,
-                    enable_face_restore,
-                    face_restore_strength,
-                    adetailer_enable_1,
-                    adetailer_conf_1,
-                    adetailer_enable_2,
-                    adetailer_conf_2,
-                    adetailer_enable_3,
-                    adetailer_conf_3,
-                    adetailer_enable_4,
-                    adetailer_conf_4,
+                    enable_adetailer,
                     preset_message,
                     preset_name,
                 ],
